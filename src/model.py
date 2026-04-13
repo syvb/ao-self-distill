@@ -83,11 +83,10 @@ class ActivationCollector:
             self._hooks.append(hook)
 
     def clear(self):
-        """Remove all hooks and clear stored activations."""
+        """Remove all hooks (but keep stored activations for later access)."""
         for hook in self._hooks:
             hook.remove()
         self._hooks = []
-        self.activations = {}
 
     @contextmanager
     def collect(self):

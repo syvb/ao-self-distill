@@ -68,28 +68,29 @@ def load_text_samples(
     random.seed(seed)
     samples = []
 
-    # English Wikipedia
+    # Use wikitext (always available, no auth needed)
     try:
-        wiki = load_dataset("wikipedia", "20220301.en", split="train", streaming=True)
+        wiki = load_dataset("wikitext", "wikitext-103-raw-v1", split="train")
         count = 0
         for item in wiki:
             text = item["text"].strip()
             if len(text) > 100:
-                # Take a random chunk
                 words = text.split()
-                if len(words) > 30:
+                if len(words) > 20:
                     start = random.randint(0, max(0, len(words) - 60))
                     chunk = " ".join(words[start:start + 60])
-                    samples.append(chunk)
-                    count += 1
-                    if count >= num_samples // 4:
-                        break
+                    if len(chunk) > 80:
+                        samples.append(chunk)
+                        count += 1
+                        if count >= num_samples // 2:
+                            break
+        print(f"  Loaded {count} wikitext samples")
     except Exception as e:
-        print(f"Warning: Could not load Wikipedia: {e}")
+        print(f"Warning: Could not load wikitext: {e}")
 
     # Try FineWeb for web text diversity
     try:
-        fineweb = load_dataset("HuggingFaceFW/FineWeb-Edu", "sample-10BT",
+        fineweb = load_dataset("HuggingFaceFW/fineweb", name="sample-10BT",
                                split="train", streaming=True)
         count = 0
         for item in fineweb:
@@ -101,41 +102,11 @@ def load_text_samples(
                     chunk = " ".join(words[start:start + 60])
                     samples.append(chunk)
                     count += 1
-                    if count >= num_samples // 4:
+                    if count >= num_samples // 2:
                         break
+        print(f"  Loaded {count} FineWeb samples")
     except Exception as e:
         print(f"Warning: Could not load FineWeb: {e}")
-
-    # Multilingual: try CC-100 or similar
-    for lang in ["fr", "de", "es", "zh", "ja", "ar"]:
-        try:
-            cc = load_dataset("cc100", lang=lang, split="train", streaming=True)
-            count = 0
-            for item in cc:
-                text = item["text"].strip()
-                if 50 < len(text) < 500:
-                    samples.append(text)
-                    count += 1
-                    if count >= num_samples // 12:
-                        break
-        except Exception as e:
-            print(f"Warning: Could not load cc100/{lang}: {e}")
-            continue
-
-    # Code samples
-    try:
-        code = load_dataset("bigcode/starcoderdata", split="train",
-                           streaming=True, data_dir="python")
-        count = 0
-        for item in code:
-            text = item["content"].strip()
-            if 100 < len(text) < 1000:
-                samples.append(text[:500])
-                count += 1
-                if count >= num_samples // 8:
-                    break
-    except Exception as e:
-        print(f"Warning: Could not load code dataset: {e}")
 
     random.shuffle(samples)
     print(f"Loaded {len(samples)} text samples")
@@ -210,9 +181,17 @@ def generate_description(
     text_truncated = text[:500]
     prompt = prompt_template.format(text=text_truncated)
 
-    # Format as chat
+    # Format as chat - disable Qwen3 thinking mode for direct descriptions
     messages = [{"role": "user", "content": prompt}]
-    formatted = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    try:
+        formatted = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True,
+            enable_thinking=False,
+        )
+    except TypeError:
+        formatted = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True,
+        )
 
     inputs = tokenizer(formatted, return_tensors="pt", truncation=True, max_length=1024)
     input_ids = inputs["input_ids"].to(model.device)
@@ -232,6 +211,16 @@ def generate_description(
     # Decode only the new tokens
     new_tokens = outputs[0][input_ids.shape[1]:]
     description = tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
+
+    # Strip any remaining think tags if present
+    if "<think>" in description:
+        # Remove everything between <think> and </think>
+        import re
+        description = re.sub(r'<think>.*?</think>', '', description, flags=re.DOTALL).strip()
+        # If still has unclosed think tag, take content after it
+        if "<think>" in description:
+            description = description.split("</think>")[-1].strip()
+
     return description
 
 
