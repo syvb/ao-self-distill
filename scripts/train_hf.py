@@ -118,13 +118,13 @@ def main():
     args = parser.parse_args()
 
     print("Loading tokenizer...")
-    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-8B", trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-1.7B", trust_remote_code=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
     print("Loading model...")
     model = AutoModelForCausalLM.from_pretrained(
-        "Qwen/Qwen3-8B",
+        "Qwen/Qwen3-1.7B",
         dtype=torch.bfloat16 if args.bf16 else torch.float32,
         trust_remote_code=True,
     )
