@@ -43,17 +43,27 @@ def injection_hook_factory(state):
             rest = None
         positions = state["positions"]
         vectors = state["vectors"].to(hidden.device, hidden.dtype)
-        for b in range(hidden.shape[0]):
+
+        # Build an additive update tensor, then add once (no in-place modification)
+        batch, seq, hid = hidden.shape
+        update = torch.zeros_like(hidden)
+        for b in range(batch):
             for i, pos in enumerate(positions[b]):
                 if pos < 0:
                     continue
                 h_i = hidden[b, pos, :]
                 v_i = vectors[b, i, :]
                 h_norm = torch.norm(h_i)
-                v_norm = torch.norm(v_i)
-                if v_norm > 1e-8:
-                    hidden[b, pos, :] = h_i + h_norm * (v_i / v_norm)
-        return (hidden,) + rest if rest is not None else hidden
+                v_norm = torch.norm(v_i) + 1e-8
+                # norm-matched: add h_norm * (v_i / v_norm) at position pos
+                update = update.index_put(
+                    (torch.tensor([b], device=hidden.device),
+                     torch.tensor([pos], device=hidden.device)),
+                    h_norm.unsqueeze(0) * (v_i / v_norm).unsqueeze(0),
+                    accumulate=True,
+                )
+        new_hidden = hidden + update
+        return (new_hidden,) + rest if rest is not None else new_hidden
     return hook
 
 
