@@ -228,18 +228,27 @@ def train(model, tokenizer, dataset_path, output_dir, device):
     return model
 
 
-import torch_xla
-
 def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", choices=["generate", "train", "both"], default="both")
+    parser.add_argument("--device", default="cpu", choices=["cpu", "xla"])
+    args = parser.parse_args()
+
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
-    device = torch_xla.device()
-    print(f"TPU device: {device}")
-
-    # Load model
-    print(f"Loading {MODEL_NAME}...")
     from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    if args.device == "xla":
+        import torch_xla
+        device = torch_xla.device()
+        print(f"TPU device: {device}")
+    else:
+        device = torch.device("cpu")
+        print(f"CPU device")
+
+    print(f"Loading {MODEL_NAME}...")
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -250,23 +259,21 @@ def main():
     model.gradient_checkpointing_enable()
     model = model.to(device)
     model.eval()
-    print("Model loaded on TPU")
+    print(f"Model loaded on {device}")
 
-    # Step 1: Generate data
-    dataset_path = generate_data(model, tokenizer, device, OUTPUT_DIR)
+    if args.mode in ("generate", "both"):
+        dataset_path = generate_data(model, tokenizer, device, OUTPUT_DIR)
+        os.system(f"cd /home/smitop2/ao-self-distill && git add {OUTPUT_DIR}/dataset.jsonl && "
+                  f"git commit -m 'Generated 1.7B training data' && git push origin master")
+    else:
+        dataset_path = os.path.join(OUTPUT_DIR, "dataset.jsonl")
 
-    # Git commit data
-    os.system(f"cd /home/smitop2/ao-self-distill && git add {OUTPUT_DIR}/dataset.jsonl && "
-              f"git commit -m 'Generated 1.7B training data' && git push origin master")
-
-    # Step 2: Train
-    print("\n\n=== TRAINING ===")
-    model.train()
-    train(model, tokenizer, dataset_path, CHECKPOINT_DIR, device)
-
-    # Git commit results
-    os.system(f"cd /home/smitop2/ao-self-distill && git add {CHECKPOINT_DIR}/training_log.jsonl && "
-              f"git commit -m 'Training complete (1.7B)' && git push origin master")
+    if args.mode in ("train", "both"):
+        print("\n\n=== TRAINING ===")
+        model.train()
+        train(model, tokenizer, dataset_path, CHECKPOINT_DIR, device)
+        os.system(f"cd /home/smitop2/ao-self-distill && git add {CHECKPOINT_DIR}/training_log.jsonl && "
+                  f"git commit -m 'Training complete (1.7B)' && git push origin master")
 
     print("\n=== PIPELINE COMPLETE ===")
 
