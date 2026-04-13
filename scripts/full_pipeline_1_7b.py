@@ -121,8 +121,9 @@ def generate_data(model, tokenizer, device, output_dir):
                     max_new_tokens=96, do_sample=False,
                     pad_token_id=tokenizer.pad_token_id or tokenizer.eos_token_id,
                 )
-                if hasattr(torch_xla, 'sync'):
-                    torch_xla.sync()
+                try:
+                    import torch_xla; torch_xla.sync()
+                except (ImportError, NameError): pass
 
             new_ids = outputs[0][input_ids.shape[1]:]
             description = tokenizer.decode(new_ids, skip_special_tokens=True).strip()
@@ -151,8 +152,9 @@ def generate_data(model, tokenizer, device, output_dir):
             collector.activations = {}
             with torch.no_grad():
                 model(input_ids=text_ids, attention_mask=text_inputs["attention_mask"].to(device))
-                if hasattr(torch_xla, 'sync'):
-                    torch_xla.sync()
+                try:
+                    import torch_xla; torch_xla.sync()
+                except (ImportError, NameError): pass
 
             for layer_idx in SOURCE_LAYERS:
                 if layer_idx not in collector.activations:
