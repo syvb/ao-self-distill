@@ -1,1 +1,7 @@
 activation-oracles.pdf
+data/
+checkpoints/
+*.pt
+__pycache__/
+*.pyc
+.cache/
