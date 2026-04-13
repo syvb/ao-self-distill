@@ -1,0 +1,5 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+WARNING:huggingface_hub.utils._http:Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading Qwen3-8B on cpu...
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]Loading weights:  75%|███████▌  | 301/399 [00:00<00:00, 3007.36it/s]Loading weights: 100%|██████████| 399/399 [00:00<00:00, 3204.57it/s]
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
