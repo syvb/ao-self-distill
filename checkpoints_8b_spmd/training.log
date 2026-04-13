@@ -1,0 +1,64 @@
+/home/smitop2/.local/lib/python3.10/site-packages/torch_xla/runtime.py:201: UserWarning: XLA_USE_SPMD is being deprecated. Use torch_xla.runtime.use_spmd() without setting XLA_USE_SPMD env-var.
+  warnings.warn("XLA_USE_SPMD is being deprecated. "
+Devices: 4
+/home/smitop2/ao-self-distill/scripts/train_spmd_8b.py:89: DeprecationWarning: Use torch_xla.device instead
+  dev = xm.xla_device()
+Device: xla:0
+Loading Qwen/Qwen3-8B...
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]Loading weights: 100%|██████████| 399/399 [00:00<00:00, 7753.34it/s]
+Model on TPU, sharding...
+Adding LoRA...
+trainable params: 81,395,712 || all params: 8,272,131,072 || trainable%: 0.9840
+Placeholder token: 937
+Base has 36 layers, injecting at layer 1
+Loaded 150 training examples
+
+=== Training: 200 steps ===
+/home/smitop2/ao-self-distill/scripts/train_spmd_8b.py:236: DeprecationWarning: Use torch_xla.sync instead
+  xm.mark_step()
+Step 5/200 | Loss: 1.4966 | 1.4 steps/min | 3.6min
+Step 10/200 | Loss: 1.4163 | 2.7 steps/min | 3.7min
+Step 15/200 | Loss: 1.1992 | 4.0 steps/min | 3.7min
+Step 20/200 | Loss: 1.0565 | 5.2 steps/min | 3.8min
+Step 25/200 | Loss: 0.7504 | 6.4 steps/min | 3.9min
+Step 30/200 | Loss: 0.9390 | 7.5 steps/min | 4.0min
+Step 35/200 | Loss: 0.7810 | 8.5 steps/min | 4.1min
+Step 40/200 | Loss: 0.8016 | 9.5 steps/min | 4.2min
+Step 45/200 | Loss: 0.7734 | 10.5 steps/min | 4.3min
+Step 50/200 | Loss: 0.6864 | 11.4 steps/min | 4.4min
+  Saved checkpoints_8b_spmd/step_50
+Step 55/200 | Loss: 0.6987 | 11.8 steps/min | 4.7min
+Step 60/200 | Loss: 0.5680 | 12.6 steps/min | 4.8min
+Step 65/200 | Loss: 0.4662 | 13.4 steps/min | 4.9min
+Step 70/200 | Loss: 0.6021 | 14.2 steps/min | 4.9min
+Step 75/200 | Loss: 0.3384 | 14.9 steps/min | 5.0min
+Step 80/200 | Loss: 0.4409 | 15.6 steps/min | 5.1min
+Step 85/200 | Loss: 0.3851 | 16.3 steps/min | 5.2min
+Step 90/200 | Loss: 0.3574 | 17.0 steps/min | 5.3min
+Step 95/200 | Loss: 0.5038 | 17.6 steps/min | 5.4min
+Step 100/200 | Loss: 0.4042 | 18.2 steps/min | 5.5min
+  Saved checkpoints_8b_spmd/step_100
+Step 105/200 | Loss: 0.5286 | 18.2 steps/min | 5.8min
+Step 110/200 | Loss: 0.3707 | 18.8 steps/min | 5.9min
+Step 115/200 | Loss: 0.2859 | 19.3 steps/min | 6.0min
+Step 120/200 | Loss: 0.2998 | 19.9 steps/min | 6.0min
+Step 125/200 | Loss: 0.3685 | 20.4 steps/min | 6.1min
+Step 130/200 | Loss: 0.3647 | 20.9 steps/min | 6.2min
+Step 135/200 | Loss: 0.2887 | 21.4 steps/min | 6.3min
+Step 140/200 | Loss: 0.2063 | 21.9 steps/min | 6.4min
+Step 145/200 | Loss: 0.2041 | 22.3 steps/min | 6.5min
+Step 150/200 | Loss: 0.3379 | 22.8 steps/min | 6.6min
+  Saved checkpoints_8b_spmd/step_150
+Step 155/200 | Loss: 0.1848 | 22.6 steps/min | 6.9min
+Step 160/200 | Loss: 0.1779 | 23.0 steps/min | 7.0min
+Step 165/200 | Loss: 0.2393 | 23.4 steps/min | 7.0min
+Step 170/200 | Loss: 0.1451 | 23.8 steps/min | 7.1min
+Step 175/200 | Loss: 0.2957 | 24.2 steps/min | 7.2min
+Step 180/200 | Loss: 0.1981 | 24.6 steps/min | 7.3min
+Step 185/200 | Loss: 0.2412 | 25.0 steps/min | 7.4min
+Step 190/200 | Loss: 0.1567 | 25.3 steps/min | 7.5min
+Step 195/200 | Loss: 0.1600 | 25.7 steps/min | 7.6min
+Step 200/200 | Loss: 0.1528 | 26.0 steps/min | 7.7min
+  Saved checkpoints_8b_spmd/step_200
+
+=== Training complete: 200 steps in 8.0min ===
