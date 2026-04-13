@@ -36,12 +36,20 @@ def injection_hook_factory(state):
             hidden = output
             rest = None
         positions = state["positions"]
-        vectors = state["vectors"].to(hidden.device, hidden.dtype)
+
+        # During autoregressive generation, the hidden state may only have seq_len=1.
+        # Only inject when we have the full prompt (seq_len > max placeholder position).
         batch, seq, hid = hidden.shape
+        max_pos = max(max(p) for p in positions if p)
+        if seq <= max_pos:
+            # Not the prompt pass - skip injection
+            return output
+
+        vectors = state["vectors"].to(hidden.device, hidden.dtype)
         update = torch.zeros_like(hidden)
         for b in range(batch):
             for i, pos in enumerate(positions[b]):
-                if pos < 0:
+                if pos < 0 or pos >= seq:
                     continue
                 h_i = hidden[b, pos, :]
                 v_i = vectors[b, i, :]
@@ -164,8 +172,7 @@ def main():
                     messages, tokenize=False, add_generation_prompt=True,
                 )
 
-            enc = tokenizer(formatted, return_tensors="pt",
-                           padding="max_length", max_length=64, truncation=True)
+            enc = tokenizer(formatted, return_tensors="pt", max_length=128, truncation=True)
             input_ids = enc["input_ids"].to(dev)
             attention_mask = enc["attention_mask"].to(dev)
 
@@ -226,6 +233,10 @@ def main():
     elapsed = time.time() - start
     print(f"\n=== Evaluation complete: {len(results)} examples in {elapsed/60:.1f}min ===")
     print(f"Results: {args.output}")
+
+    if not results:
+        print("No results to analyze")
+        return
 
     # Simple stats
     total_len_gen = sum(len(r["generated"]) for r in results)
