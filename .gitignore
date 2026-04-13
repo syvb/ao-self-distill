@@ -1,7 +1,11 @@
 activation-oracles.pdf
-data/
+data/activations/
+data/generation*.log
+data/.generation_pid
 checkpoints/
+eval_results/
 *.pt
 __pycache__/
 *.pyc
 .cache/
+data_test/

@@ -304,11 +304,15 @@ def load_jsonl(path: str) -> list[dict]:
 class AODataset(torch.utils.data.Dataset):
     """Dataset for Activation Oracle training.
 
-    Each example consists of:
-    - source_activations: Activation vectors from the target model (num_acts, hidden_size)
-    - source_layer: Which layer the activations came from
-    - oracle_question: The question to ask the AO
-    - target_description: The description the AO should produce
+    Each example from dataset.jsonl has:
+    - text: source text
+    - description: self-generated description (training target)
+    - layer: which layer activations came from
+    - activation_file: filename in activations/ dir (e.g. activations_0_L9.pt)
+    - num_activations: number of activation vectors
+    - positions: token positions where activations were collected
+
+    The activation file is a tensor of shape (num_positions, hidden_size).
     """
 
     def __init__(
@@ -324,40 +328,34 @@ class AODataset(torch.utils.data.Dataset):
         self.max_num_activations = max_num_activations
         self.max_target_length = max_target_length
         self.source_layers = source_layers or [9, 18, 27]
-
-        # Load descriptions
-        self.descriptions = load_jsonl(descriptions_path)
-
-        # Load activation file index
         self.activation_dir = activation_dir
-        self.activation_files = sorted(
-            Path(activation_dir).glob("*.pt"),
-            key=lambda p: int(p.stem.split("_")[-1])
-        )
 
-        # Only keep examples where we have both activations and descriptions
-        self.valid_indices = []
-        for i, desc in enumerate(self.descriptions):
-            act_path = Path(activation_dir) / f"activations_{i}.pt"
+        # Load and validate examples
+        all_examples = load_jsonl(descriptions_path)
+        self.examples = []
+        for ex in all_examples:
+            act_path = Path(activation_dir) / ex["activation_file"]
             if act_path.exists():
-                self.valid_indices.append(i)
+                self.examples.append(ex)
 
-        print(f"AODataset: {len(self.valid_indices)} valid examples")
+        print(f"AODataset: {len(self.examples)} valid examples "
+              f"(of {len(all_examples)} total)")
 
     def __len__(self):
-        return len(self.valid_indices)
+        return len(self.examples)
 
     def __getitem__(self, idx):
-        real_idx = self.valid_indices[idx]
-        desc_item = self.descriptions[real_idx]
-        act_data = torch.load(
-            Path(self.activation_dir) / f"activations_{real_idx}.pt",
-            weights_only=True,
-        )
+        ex = self.examples[idx]
 
-        # Pick a random source layer
-        source_layer = random.choice(self.source_layers)
-        activations = act_data[source_layer]  # (seq_len, hidden_size) or (num_pos, hidden_size)
+        # Load activation tensor
+        act_path = Path(self.activation_dir) / ex["activation_file"]
+        activations = torch.load(act_path, weights_only=True)
+
+        # activations shape: (num_positions, hidden_size)
+        if activations.dim() == 1:
+            activations = activations.unsqueeze(0)
+
+        source_layer = ex["layer"]
 
         # Subsample activations if too many
         num_acts = min(activations.shape[0], self.max_num_activations)
@@ -368,13 +366,12 @@ class AODataset(torch.utils.data.Dataset):
         # Pick a random oracle question
         question = random.choice(ORACLE_QUESTIONS)
 
-        # Build the oracle prompt
-        from .model import PLACEHOLDER_TOKEN, get_placeholder_token_id
-        placeholders = PLACEHOLDER_TOKEN * num_acts
+        # Build the oracle prompt with placeholder tokens
+        placeholders = " ?" * num_acts
         oracle_text = f"Layer {source_layer}:{placeholders} {question}"
 
         # Target is the description
-        target_text = desc_item["description"]
+        target_text = ex["description"]
 
         return {
             "oracle_text": oracle_text,
