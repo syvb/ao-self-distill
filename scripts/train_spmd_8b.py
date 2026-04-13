@@ -257,7 +257,13 @@ def main():
 
                 if step_count % args.save_every == 0:
                     save_dir = os.path.join(CHECKPOINT_DIR, f"step_{step_count}")
-                    model.save_pretrained(save_dir)
+                    os.makedirs(save_dir, exist_ok=True)
+                    # Move LoRA weights to CPU before saving
+                    lora_state = {}
+                    for name, p in model.named_parameters():
+                        if p.requires_grad:
+                            lora_state[name] = p.detach().cpu()
+                    torch.save(lora_state, os.path.join(save_dir, "lora_weights.pt"))
                     print(f"  Saved {save_dir}")
 
             except Exception as e:
@@ -273,8 +279,15 @@ def main():
     log_file.close()
 
     final_dir = os.path.join(CHECKPOINT_DIR, "final")
-    model.save_pretrained(final_dir)
+    os.makedirs(final_dir, exist_ok=True)
+    lora_state = {}
+    for name, p in model.named_parameters():
+        if p.requires_grad:
+            lora_state[name] = p.detach().cpu()
+    torch.save(lora_state, os.path.join(final_dir, "lora_weights.pt"))
     tokenizer.save_pretrained(final_dir)
+    # Also save LoRA config for reloading
+    model.peft_config['default'].save_pretrained(final_dir)
     elapsed = time.time() - start
     print(f"\n=== Training complete: {step_count} steps in {elapsed/60:.1f}min ===")
 
