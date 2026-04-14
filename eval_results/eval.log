@@ -1,0 +1,11 @@
+/home/smitop2/.local/lib/python3.10/site-packages/torch_xla/runtime.py:201: UserWarning: XLA_USE_SPMD is being deprecated. Use torch_xla.runtime.use_spmd() without setting XLA_USE_SPMD env-var.
+  warnings.warn("XLA_USE_SPMD is being deprecated. "
+/home/smitop2/ao-self-distill/scripts/eval_tpu_fast.py:125: DeprecationWarning: Use torch_xla.device instead
+  dev = xm.xla_device()
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+WARNING:huggingface_hub.utils._http:Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Device: xla:0 (4 chips)
+Loading Qwen/Qwen3-8B...
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]Loading weights: 100%|██████████| 399/399 [00:00<00:00, 7756.11it/s]
+/home/smitop2/ao-self-distill/scripts/eval_tpu_fast.py:104: DeprecationWarning: Use torch_xla.sync instead
+  xm.mark_step()

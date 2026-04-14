@@ -1,0 +1,45 @@
+/home/smitop2/.local/lib/python3.10/site-packages/torch_xla/runtime.py:201: UserWarning: XLA_USE_SPMD is being deprecated. Use torch_xla.runtime.use_spmd() without setting XLA_USE_SPMD env-var.
+  warnings.warn("XLA_USE_SPMD is being deprecated. "
+/home/smitop2/ao-self-distill/scripts/eval_loss.py:159: DeprecationWarning: Use torch_xla.device instead
+  dev = xm.xla_device()
+Device: xla:0 (4 chips)
+Loading Qwen/Qwen3-8B...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+WARNING:huggingface_hub.utils._http:Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]Loading weights: 100%|██████████| 399/399 [00:00<00:00, 16060.72it/s]
+Loading LoRA from checkpoints_8b_spmd/final/lora_weights.pt...
+Loaded 432/432 LoRA weights
+
+=== Loss evaluation: 20 examples x 3 conditions ===
+/home/smitop2/ao-self-distill/scripts/eval_loss.py:139: DeprecationWarning: Use torch_xla.sync instead
+  xm.mark_step()
+Ex 0 L27 (21.1s): correct=0.0508 shuffled=0.1091 zero=0.1420
+Ex 1 L18 (0.4s): correct=0.1881 shuffled=0.2670 zero=0.2109
+Ex 2 L27 (0.4s): correct=0.3822 shuffled=0.3793 zero=0.3851
+Ex 3 L18 (0.4s): correct=0.2985 shuffled=0.5454 zero=0.4827
+Ex 4 L27 (0.4s): correct=0.2028 shuffled=0.2904 zero=0.3374
+Ex 5 L9 (21.9s): correct=0.1535 shuffled=0.3080 zero=0.2441
+Ex 6 L18 (0.4s): correct=0.0788 shuffled=0.2492 zero=0.2926
+Ex 7 L18 (0.4s): correct=0.3751 shuffled=0.6305 zero=0.5092
+Ex 8 L9 (0.4s): correct=0.0612 shuffled=0.0642 zero=0.0908
+Ex 9 L27 (0.4s): correct=0.2084 shuffled=0.2909 zero=0.2067
+Ex 10 L27 (0.4s): correct=0.0422 shuffled=0.1214 zero=0.0558
+Ex 11 L18 (0.4s): correct=0.1114 shuffled=0.2435 zero=0.1753
+Ex 12 L27 (0.4s): correct=0.0676 shuffled=0.3253 zero=0.0862
+Ex 13 L9 (0.4s): correct=0.0531 shuffled=0.1985 zero=0.1641
+Ex 14 L27 (0.4s): correct=0.2431 shuffled=0.3948 zero=0.3949
+Ex 15 L18 (0.4s): correct=0.1593 shuffled=0.2526 zero=0.2447
+Ex 16 L27 (0.4s): correct=0.1802 shuffled=0.2873 zero=0.3364
+Ex 17 L27 (0.4s): correct=0.1232 shuffled=0.3645 zero=0.1751
+Ex 18 L9 (0.4s): correct=0.1664 shuffled=0.3434 zero=0.2722
+Ex 19 L27 (0.4s): correct=0.1285 shuffled=0.2099 zero=0.2216
+
+=== Complete: 20 examples in 0.8min ===
+Average loss (correct activations):  0.1637
+Average loss (shuffled activations): 0.2938
+Average loss (zero activations):     0.2514
+
+Gap correct vs shuffled: 0.1300
+Gap correct vs zero:     0.0877
+
+✓ Oracle uses activations: correct activations give LOWEST loss
